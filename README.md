@@ -1,9 +1,12 @@
 # Cloud Mail Linux build coordination
 
-This public repository coordinates secret-free Linux acceptance for the application at https://github.com/3899178/cloud-mail.
+This public repository coordinates image acceptance and publication for https://github.com/3899178/cloud-mail. Application development remains in that repository.
 
-The workflow checks out an explicitly pinned application commit and runs that source's existing deploy/ci.sh, including its runtime-image and 320MiB resource gates. Logs identify both the application source commit and this coordinator commit.
+- `linux-acceptance.yml` is the initial acceptance-only workflow. It reads its pinned application commit, has read-only permissions and does not publish or deploy.
+- `publish-mail-sync.yml` pins the reviewed application commit separately from this coordinator's workflow commit. Owner-only manual execution on main enters the protected `public-image-release` environment. It runs complete Linux/image/resource/lifecycle acceptance before pushing that same image with a short-lived GitHub token. Only that job has package write permission. A separate read-only job validates the public manifest, config, provenance and immutable pull anonymously.
 
-Only the repository owner can manually trigger the initial workflow on main. It uses a standard Ubuntu runner with read-only repository permissions and no configured secrets. It does not deploy the service, publish images or upload artifacts.
+Coordinator runtime packages are published at `ghcr.io/3899178/cloud-mail-build/mail-sync`. The package links to this actual workflow repository. Required original application-source, application-revision and coordinator-revision metadata preserve the full provenance chain.
 
-A passing build is evidence for the named synthetic Linux gates. It does not establish real mailbox compatibility, live server capacity, production acceptance or Android readiness. The application repository and its existing history remain the source of product development.
+Standard Ubuntu runners are used without configured long-lived secrets, image artifacts, paid runners or automatic scheduled execution. Workflows do not deploy the website or server.
+
+Passing synthetic CI is evidence only for its named gates. Real provider compatibility, live AWS capacity, production regression and Android readiness require their own acceptance.
