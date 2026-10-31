@@ -1,0 +1,32 @@
+name: Cloud Mail independent Linux acceptance
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: cloud-mail-linux-acceptance
+  cancel-in-progress: false
+jobs:
+  linux:
+    if: github.repository == '3899178/cloud-mail-build' && github.actor == '3899178' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - name: Check out the reviewed public application source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          repository: 3899178/cloud-mail
+          ref: 984af00b346ed883c307917e137b8848c96a89be
+          persist-credentials: false
+      - name: Verify source identity and run existing exact-image gates
+        shell: bash
+        env:
+          EXPECTED_SOURCE: 984af00b346ed883c307917e137b8848c96a89be
+          COORDINATOR_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SOURCE"
+          printf 'source=%s coordinator=%s run=%s\n' "$EXPECTED_SOURCE" "$COORDINATOR_SHA" "$GITHUB_RUN_ID"
+          # Existing ci.sh uses GITHUB_SHA only for context names and image revision labels.
+          # Scope it to the verified application source, not the coordinator commit.
+          GITHUB_SHA="$EXPECTED_SOURCE" bash deploy/ci.sh
